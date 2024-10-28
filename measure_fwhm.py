@@ -8,7 +8,7 @@ from astropy.stats import mad_std
 from photutils.detection import DAOStarFinder
 from astropy.time import Time
 import astropy.units as u
-from plotting_tools import get_location, get_light_travel_times, plot_images
+from plotting_tools import get_location, get_light_travel_times, plot_images, gaussian_2d, calculate_airmass
 import warnings
 import json
 import argparse
@@ -22,21 +22,6 @@ parser.add_argument('--size', type=float, default=11, help='pixel size to conver
 args = parser.parse_args()
 crop_size = args.crop_size
 size = args.size
-
-
-# Function to fit a 2D Gaussian
-def gaussian_2d(xy, amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
-    x, y = xy
-    a = (np.cos(theta) ** 2) / (2 * sigma_x ** 2) + (np.sin(theta) ** 2) / (2 * sigma_y ** 2)
-    b = -(np.sin(2 * theta)) / (4 * sigma_x ** 2) + (np.sin(2 * theta)) / (4 * sigma_y ** 2)
-    c = (np.sin(theta) ** 2) / (2 * sigma_x ** 2) + (np.cos(theta) ** 2) / (2 * sigma_y ** 2)
-    g = offset + amplitude * np.exp(-(a * ((x - xo) ** 2) + 2 * b * (x - xo) * (y - yo) + c * ((y - yo) ** 2)))
-    return g.ravel()
-
-
-# Get airmass from altitude
-def calculate_airmass(altitude):
-    return 1 / np.cos(np.radians(90 - altitude))
 
 
 # Function to calculate FWHM for stars in an image
