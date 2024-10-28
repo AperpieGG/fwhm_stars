@@ -17,7 +17,7 @@ plot_images()
 def calculate_fwhm(image_data):
     # Estimate background noise level
     mean, median, std = np.mean(image_data), np.median(image_data), mad_std(image_data)
-    daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=10)
+    daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=50)
     selected_sources = daofind(image_data - median)
 
     if selected_sources is None:
@@ -55,11 +55,12 @@ def calculate_fwhm(image_data):
 # Function to split image into 9 regions and calculate FWHM for each
 def split_image_and_calculate_fwhm(image_data):
     h, w = image_data.shape
-    h_step, w_step = h // 3, w // 3  # 3x3 grid
+    # do 3 x 2 grid
+    h_step, w_step = h // 3, w // 2
     fwhm_results = {}
 
     for i in range(3):
-        for j in range(3):
+        for j in range(2):
             region_name = f"Region_{i * 3 + j + 1}"
             x_start, x_end = j * w_step, (j + 1) * w_step
             y_start, y_end = i * h_step, (i + 1) * h_step
