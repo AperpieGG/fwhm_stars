@@ -55,13 +55,13 @@ def calculate_fwhm(image_data):
 # Function to split image into 9 regions and calculate FWHM for each
 def split_image_and_calculate_fwhm(image_data):
     h, w = image_data.shape
-    # do 3 x 2 grid
-    h_step, w_step = h // 3, w // 2
+    # do 2 x 2 grid
+    h_step, w_step = h // 2, w // 2
     fwhm_results = {}
 
-    for i in range(3):
+    for i in range(2):
         for j in range(2):
-            region_name = f"Region_{i * 3 + j + 1}"
+            region_name = f"Region_{i + 1}{j + 1}"
             x_start, x_end = j * w_step, (j + 1) * w_step
             y_start, y_end = i * h_step, (i + 1) * h_step
             region_data = image_data[y_start:y_end, x_start:x_end]
