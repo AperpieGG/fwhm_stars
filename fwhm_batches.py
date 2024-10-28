@@ -10,7 +10,8 @@ from astropy.stats import mad_std
 from photutils.detection import DAOStarFinder
 from astropy.time import Time
 import astropy.units as u
-from plotting_tools import get_location, get_light_travel_times, plot_images, gaussian_2d, calculate_airmass
+from plotting_tools import get_location, get_light_travel_times, plot_images, gaussian_2d, calculate_airmass, \
+    save_results_json
 import argparse
 import warnings
 plot_images()
@@ -173,19 +174,18 @@ for i, filename in enumerate(sorted_filenames):
 
         fwhm_results = split_image_and_calculate_fwhm(image_data, pixel_size)
 
-        # Plot the first or last image after processing
-        if i == 0:  # Change to just the last or first
-            plot_image_with_sources(image_data, fwhm_results)
-
         # Print FWHM results for each region
         print(f"FWHM Results for {filename}:")
         for region, results in fwhm_results.items():
             print(f"{region} - FWHM: {results['FWHM']:.2f}, Ratio: {results['Ratio']:.2f}")
             print()
 
-# Sort by BJD for plotting
-sorted_data = sorted(zip(times, fwhm_values, airmass_values, ratio_values))
-times, fwhm_values, airmass_values, ratio_values = zip(*sorted_data)
+        save_results_json(header['BJD'], header['AIRMASS'], fwhm_values, ratio_values,  fwhm_results, pixel_size)
+
+        # Plot the first or last image after processing
+        if i == len(sorted_filenames) - 1:
+            plot_image_with_sources(image_data, fwhm_results)
+
 
 
 
