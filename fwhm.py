@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from astropy.stats import mad_std
 from photutils.detection import DAOStarFinder
 from photutils.aperture import CircularAperture
-from utils import plot_images
+from plotting_tools import plot_images
 import warnings
 import argparse
 
