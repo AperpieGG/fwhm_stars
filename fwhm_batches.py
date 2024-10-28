@@ -22,6 +22,49 @@ args = parser.parse_args()
 pixel_size = args.size
 
 
+def plot_image_with_sources(image_data, fwhm_results):
+    """
+    Plot the image with the identified sources and FWHM results.
+
+    Parameters:
+        image_data (numpy.ndarray): The 2D array of image data.
+        fwhm_results (dict): Dictionary containing FWHM results for each region.
+    """
+    fig, ax = plt.subplots(2, 2, figsize=(12, 10))
+
+    # Split the image into quadrants
+    h, w = image_data.shape
+    regions = {
+        "Region_11": image_data[0:h//2, 0:w//2],
+        "Region_12": image_data[0:h//2, w//2:w],
+        "Region_21": image_data[h//2:h, 0:w//2],
+        "Region_22": image_data[h//2:h, w//2:w],
+    }
+
+    # Plot each region
+    for i, (region_name, region_data) in enumerate(regions.items()):
+        ax_row = i // 2
+        ax_col = i % 2
+        ax[ax_row, ax_col].imshow(region_data, cmap='gray', origin='lower')
+        ax[ax_row, ax_col].set_title(region_name)
+
+        # Show apertures for sources found
+        if region_name in fwhm_results:
+            for source in fwhm_results[region_name]:
+                x_star, y_star = source['xcentroid'], source['ycentroid']
+                aperture = CircularAperture((x_star, y_star), r=5)  # Radius of 5 pixels
+                aperture.plot(color='red', lw=1, ax=ax[ax_row, ax_col])
+
+                # Display the average FWHM for the region
+                avg_fwhm = fwhm_results[region_name]["FWHM"]
+                ax[ax_row, ax_col].text(0.05, 0.95, f'Avg FWHM: {avg_fwhm:.2f} px',
+                                         transform=ax[ax_row, ax_col].transAxes,
+                                         color='white', fontsize=10, ha='left')
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])  # Adjust layout
+    plt.show()
+
+
 # Function to calculate FWHM for a given region
 def calculate_fwhm(image_data, pixel_size):
     # Estimate background noise level
@@ -129,6 +172,11 @@ for i, filename in enumerate(sorted_filenames):
             print(f"Airmass found in header for {filename}: {header['AIRMASS']}")
 
         fwhm_results = split_image_and_calculate_fwhm(image_data, pixel_size)
+
+        # Plot the first or last image after processing
+        if i == 0:  # Change to just the last or first
+            plot_image_with_sources(image_data, fwhm_results)
+
         # Print FWHM results for each region
         print(f"FWHM Results for {filename}:")
         for region, results in fwhm_results.items():
@@ -139,59 +187,6 @@ for i, filename in enumerate(sorted_filenames):
 sorted_data = sorted(zip(times, fwhm_values, airmass_values, ratio_values))
 times, fwhm_values, airmass_values, ratio_values = zip(*sorted_data)
 
-# Plot FWHM vs Time and FWHM vs Airmass
-print("Plotting results...")
-fig, ax1 = plt.subplots()
 
-ax1.plot([data[0] for data in sorted_data], [data[1] for data in sorted_data], 'o', label='FWHM')
-ax1.set_xlabel("BJD")
-ax1.set_ylabel("FWHM (pixels)")
 
-# Airmass on top x-axis
-ax2 = ax1.twiny()
-ax2.set_xlim(ax1.get_xlim())
-ax2.set_xlabel('Airmass')
-interpolated_airmass = np.interp(ax1.get_xticks(), times, airmass_values)
-ax2.set_xticks(ax1.get_xticks())
-ax2.set_xticklabels([f'{a:.2f}' for a in interpolated_airmass], rotation=45, ha='right')
 
-ax1.legend()
-plt.tight_layout()
-plt.show()
-
-# Prepare data in dictionary format for JSON output with regional details
-data_dict = {
-    "results": []
-}
-
-for i, (bjd, airmass, fwhm, ratio) in enumerate(zip(times, airmass_values, fwhm_values, ratio_values)):
-    # Create a data structure with details for each region
-    region_data = {
-        "BJD": bjd,
-        "Airmass": airmass,
-        "Overall_FWHM": fwhm,
-        "Overall_Ratio": ratio,
-        "Regions": [
-            {
-                "Region": region,
-                "FWHM": results["FWHM"],
-                "Ratio": results["Ratio"]
-            }
-            for region, results in fwhm_results.items()
-        ]
-    }
-    data_dict["results"].append(region_data)
-
-# Determine the camera type
-if pixel_size == 11:
-    camera = "CMOS"
-elif pixel_size == 13.5:
-    camera = "CCD"
-else:
-    camera = "Unknown"
-
-# Write data to JSON file with camera type in the filename
-with open(f"fwhm_batches_{camera}.json", "w") as json_file:
-    json.dump(data_dict, json_file, indent=4)
-
-print(f"Results saved to fwhm_batches_{camera}.json")
