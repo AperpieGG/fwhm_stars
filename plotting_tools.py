@@ -1,3 +1,5 @@
+import json
+
 import matplotlib.pyplot as plt
 from astropy.coordinates import EarthLocation, SkyCoord
 import astropy.units as u
@@ -108,3 +110,52 @@ def gaussian_2d(xy, amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
 
 def calculate_airmass(altitude):
     return 1 / np.cos(np.radians(90 - altitude))
+
+
+def save_results_json(times, airmass_values, fwhm_values, ratio_values, fwhm_results, pixel_size):
+    """
+    Save the results of FWHM calculations to a JSON file with regional details.
+
+    Parameters:
+        times (list): List of BJD values.
+        airmass_values (list): List of airmass values.
+        fwhm_values (list): List of overall FWHM values.
+        ratio_values (list): List of overall ratio values.
+        fwhm_results (dict): Dictionary containing FWHM results for each region.
+        pixel_size (float): The pixel size used to determine the camera type.
+    """
+
+    # Prepare data in dictionary format for JSON output with regional details
+    data_dict = {"results": []}
+
+    for i, (bjd, airmass, fwhm, ratio) in enumerate(zip(times, airmass_values, fwhm_values, ratio_values)):
+        # Create a data structure with details for each region
+        region_data = {
+            "BJD": bjd,
+            "Airmass": airmass,
+            "Overall_FWHM": fwhm,
+            "Overall_Ratio": ratio,
+            "Regions": [
+                {
+                    "Region": region,
+                    "FWHM": results["FWHM"],
+                    "Ratio": results["Ratio"]
+                }
+                for region, results in fwhm_results.items()
+            ]
+        }
+        data_dict["results"].append(region_data)
+
+    # Determine the camera type based on pixel size
+    camera = "Unknown"
+    if pixel_size == 11:
+        camera = "CMOS"
+    elif pixel_size == 13.5:
+        camera = "CCD"
+
+    # Write data to JSON file with camera type in the filename
+    json_filename = f"fwhm_batches_{camera}.json"
+    with open(json_filename, "w") as json_file:
+        json.dump(data_dict, json_file, indent=4)
+
+    print(f"Results saved to {json_filename}")
