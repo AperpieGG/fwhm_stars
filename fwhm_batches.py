@@ -17,7 +17,7 @@ plot_images()
 def calculate_fwhm(image_data):
     # Estimate background noise level
     mean, median, std = np.mean(image_data), np.median(image_data), mad_std(image_data)
-    daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=100)
+    daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=50)
     selected_sources = daofind(image_data - median)
 
     if selected_sources is None:
