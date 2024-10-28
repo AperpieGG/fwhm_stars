@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from astropy.coordinates import EarthLocation, SkyCoord
 import astropy.units as u
+import numpy as np
 
 
 def plot_images():
@@ -93,3 +94,17 @@ def get_light_travel_times(ra, dec, time_to_correct):
     ltt_bary = time_to_correct.light_travel_time(target)
     ltt_helio = time_to_correct.light_travel_time(target, 'heliocentric')
     return ltt_bary, ltt_helio
+
+
+# Function to fit a 2D Gaussian
+def gaussian_2d(xy, amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
+    x, y = xy
+    a = (np.cos(theta) ** 2) / (2 * sigma_x ** 2) + (np.sin(theta) ** 2) / (2 * sigma_y ** 2)
+    b = -(np.sin(2 * theta)) / (4 * sigma_x ** 2) + (np.sin(2 * theta)) / (4 * sigma_y ** 2)
+    c = (np.sin(theta) ** 2) / (2 * sigma_x ** 2) + (np.cos(theta) ** 2) / (2 * sigma_y ** 2)
+    g = offset + amplitude * np.exp(-(a * ((x - xo) ** 2) + 2 * b * (x - xo) * (y - yo) + c * ((y - yo) ** 2)))
+    return g.ravel()
+
+
+def calculate_airmass(altitude):
+    return 1 / np.cos(np.radians(90 - altitude))
