@@ -1,7 +1,9 @@
 #! /usr/bin/env python
+import json
 import os
 import numpy as np
 from astropy.io import fits
+from photutils.aperture import CircularAperture
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from astropy.stats import mad_std
@@ -9,12 +11,19 @@ from photutils.detection import DAOStarFinder
 from astropy.time import Time
 import astropy.units as u
 from plotting_tools import get_location, get_light_travel_times, plot_images, gaussian_2d, calculate_airmass
-
+import argparse
+import warnings
 plot_images()
+
+warnings.filterwarnings('ignore', category=UserWarning)
+parser = argparse.ArgumentParser(description='Measure FWHM from a FITS image.')
+parser.add_argument('--size', type=int, default=800, help='CMOS = 11, CCD = 13.5')
+args = parser.parse_args()
+pixel_size = args.size
 
 
 # Function to calculate FWHM for a given region
-def calculate_fwhm(image_data):
+def calculate_fwhm(image_data, pixel_size):
     # Estimate background noise level
     mean, median, std = np.mean(image_data), np.median(image_data), mad_std(image_data)
     daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=50)
@@ -48,12 +57,12 @@ def calculate_fwhm(image_data):
     if fwhms_x and fwhms_y:
         avg_fwhm_x, avg_fwhm_y = np.median(fwhms_x), np.median(fwhms_y)
         ratio = np.median([fwhms_x[i] / fwhms_y[i] for i in range(len(fwhms_x))])
-        return (avg_fwhm_x + avg_fwhm_y) / 2, ratio
+        return (avg_fwhm_x + avg_fwhm_y) * pixel_size / 2, ratio
     return None, None
 
 
 # Function to split image into 9 regions and calculate FWHM for each
-def split_image_and_calculate_fwhm(image_data):
+def split_image_and_calculate_fwhm(image_data, pixel_size):
     h, w = image_data.shape
     # do 2 x 2 grid
     h_step, w_step = h // 2, w // 2
@@ -67,7 +76,7 @@ def split_image_and_calculate_fwhm(image_data):
             region_data = image_data[y_start:y_end, x_start:x_end]
 
             # Calculate FWHM for the region
-            fwhm, ratio = calculate_fwhm(region_data)
+            fwhm, ratio = calculate_fwhm(region_data, pixel_size)
             if fwhm and ratio:
                 fwhm_results[region_name] = {"FWHM": fwhm, "Ratio": ratio}
             else:
@@ -119,12 +128,12 @@ for i, filename in enumerate(sorted_filenames):
         else:
             print(f"Airmass found in header for {filename}: {header['AIRMASS']}")
 
-        fwhm_results = split_image_and_calculate_fwhm(image_data)
-
+        fwhm_results = split_image_and_calculate_fwhm(image_data, pixel_size)
         # Print FWHM results for each region
         print(f"FWHM Results for {filename}:")
         for region, results in fwhm_results.items():
             print(f"{region} - FWHM: {results['FWHM']:.2f}, Ratio: {results['Ratio']:.2f}")
+            print()
 
 # Sort by BJD for plotting
 sorted_data = sorted(zip(times, fwhm_values, airmass_values, ratio_values))
@@ -149,3 +158,40 @@ ax2.set_xticklabels([f'{a:.2f}' for a in interpolated_airmass], rotation=45, ha=
 ax1.legend()
 plt.tight_layout()
 plt.show()
+
+# Prepare data in dictionary format for JSON output with regional details
+data_dict = {
+    "results": []
+}
+
+for i, (bjd, airmass, fwhm, ratio) in enumerate(zip(times, airmass_values, fwhm_values, ratio_values)):
+    # Create a data structure with details for each region
+    region_data = {
+        "BJD": bjd,
+        "Airmass": airmass,
+        "Overall_FWHM": fwhm,
+        "Overall_Ratio": ratio,
+        "Regions": [
+            {
+                "Region": region,
+                "FWHM": results["FWHM"],
+                "Ratio": results["Ratio"]
+            }
+            for region, results in fwhm_results.items()
+        ]
+    }
+    data_dict["results"].append(region_data)
+
+# Determine the camera type
+if pixel_size == 11:
+    camera = "CMOS"
+elif pixel_size == 13.5:
+    camera = "CCD"
+else:
+    camera = "Unknown"
+
+# Write data to JSON file with camera type in the filename
+with open(f"fwhm_batches_{camera}.json", "w") as json_file:
+    json.dump(data_dict, json_file, indent=4)
+
+print(f"Results saved to fwhm_batches_{camera}.json")
