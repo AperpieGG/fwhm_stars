@@ -14,12 +14,9 @@ def load_and_normalize_fwhm(json_file, size):
     bjds = [entry["BJD"] for entry in data["results"]]
     airmass = [entry["Airmass"] for entry in data["results"]]
     fwhm = [entry["FWHM"] for entry in data["results"]]
+    fwhm_microns = [entry["FWHM_microns"] for entry in data["results"]]
     ratio = [entry["Ratio"] for entry in data["results"]]
-    fwhm_microns = [f * size for f in fwhm]  # Convert FWHM to microns
-    median_fwhm = np.median(fwhm)
-    median_fwhm_microns = fwhm_microns * size
-    normalized_fwhm = [f / median_fwhm for f in fwhm]
-    return bjds, airmass, normalized_fwhm, median_fwhm_microns, ratio
+    return bjds, airmass, fwhm, fwhm_microns, ratio
 
 
 # Load and process data from both JSON files
