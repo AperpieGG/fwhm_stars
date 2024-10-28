@@ -2,7 +2,7 @@
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import plot_images
+from plotting_tools import plot_images
 
 plot_images()
 

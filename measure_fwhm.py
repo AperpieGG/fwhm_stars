@@ -8,7 +8,7 @@ from astropy.stats import mad_std
 from photutils.detection import DAOStarFinder
 from astropy.time import Time
 import astropy.units as u
-from utils import get_location, get_light_travel_times, plot_images
+from plotting_tools import get_location, get_light_travel_times, plot_images
 import warnings
 import json
 import argparse
