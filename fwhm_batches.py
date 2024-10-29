@@ -62,18 +62,17 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     plt.figure(figsize=(10, 10))
     plt.imshow(image_data, cmap='hot', origin='lower', vmin=vmin, vmax=vmax)
 
-    # Split the image into quadrants
+    # Split the image into a 3x3 grid
     h, w = image_data.shape
-    quadrants = {
-        "Region_11": (0, h // 2, 0, w // 2),
-        "Region_12": (0, h // 2, w // 2, w),
-        "Region_21": (h // 2, h, 0, w // 2),
-        "Region_22": (h // 2, h, w // 2, w),
+    h_step, w_step = h // 3, w // 3
+    regions = {
+        f"Region_{i+1}{j+1}": (i * h_step, (i + 1) * h_step, j * w_step, (j + 1) * w_step)
+        for i in range(3) for j in range(3)
     }
 
     positions = []  # Store positions of sources for lines
 
-    for region_name, (y_start, y_end, x_start, x_end) in quadrants.items():
+    for region_name, (y_start, y_end, x_start, x_end) in regions.items():
         # Get FWHM results for each region
         if region_name in fwhm_results:
             region_sources = fwhm_results[region_name]
@@ -91,22 +90,16 @@ def plot_full_image_with_sources(image_data, fwhm_results):
             plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
                      color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
 
-    # # Draw lines connecting the sources
-    # if len(positions) > 1:
-    #     xs, ys = zip(*positions)
-    #     plt.plot(xs, ys, color='cyan', linestyle='-', lw=1.5, alpha=0.5)  # Line connecting sources
-
     # Draw boundary lines for regions
-    plt.axhline(y=h // 2, color='black', linestyle='-', lw=1)  # Horizontal line between Region 1 and 2
-    plt.axvline(x=w // 2, color='black', linestyle='-', lw=1)  # Vertical line between Region 1 and 2
-    plt.axhline(y=h, color='black', linestyle='-', lw=1)  # Bottom boundary
-    plt.axvline(x=w, color='black', linestyle='-', lw=1)  # Right boundary
+    for i in range(1, 3):
+        plt.axhline(y=i * h_step, color='black', linestyle='-', lw=1)  # Horizontal lines
+        plt.axvline(x=i * w_step, color='black', linestyle='-', lw=1)  # Vertical lines
 
     # Set the axes to match the image dimensions
-    plt.xlim(0, w)  # Set x limits to match image width
-    plt.ylim(0, h)  # Set y limits to match image height
+    plt.xlim(0, w)
+    plt.ylim(0, h)
 
-    # Calculate the average FWHM from the results
+    # Calculate the overall average FWHM
     fwhm_values = [results['FWHM'] for results in fwhm_results.values() if 'FWHM' in results]
     average_fwhm = np.median(fwhm_values) if fwhm_values else 0
 
@@ -149,10 +142,11 @@ def calculate_fwhm(image_data, pixel_size):
 
 def split_image_and_calculate_fwhm(image_data, pixel_size):
     h, w = image_data.shape
-    h_step, w_step = h // 2, w // 2
+    h_step, w_step = h // 3, w // 3  # Divide image into 3x3 grid
     fwhm_results = {}
-    for i in range(2):
-        for j in range(2):
+
+    for i in range(3):  # Loop through rows
+        for j in range(3):  # Loop through columns
             region_name = f"Region_{i + 1}{j + 1}"
             x_start, x_end = j * w_step, (j + 1) * w_step
             y_start, y_end = i * h_step, (i + 1) * h_step
@@ -171,7 +165,7 @@ filenames = sorted([
     f for f in os.listdir(directory)
     if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
                                                                       "catalog", "phot", "catalog_input"])
-])
+])[:10]
 
 # Inside the loop that processes each FITS file
 for i, filename in enumerate(filenames):
