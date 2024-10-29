@@ -33,7 +33,9 @@ def save_results_json(bjd, airmass, pixel_size, fwhm_results):
         regions_data.append({
             "Region": region_name,
             "FWHM": results["FWHM"],
-            "Ratio": results["Ratio"]
+            "Ratio": results["Ratio"],
+            "FWHM_X": results["FWHM_X"],
+            "FWHM_Y": results["FWHM_Y"]
         })
 
     result_data = {
@@ -136,8 +138,8 @@ def calculate_fwhm(image_data, pixel_size):
     if fwhms_x and fwhms_y:
         avg_fwhm_x, avg_fwhm_y = np.median(fwhms_x), np.median(fwhms_y)
         ratio = np.median([fwhms_x[i] / fwhms_y[i] for i in range(len(fwhms_x))])
-        return (avg_fwhm_x + avg_fwhm_y) * pixel_size / 2, ratio, sources
-    return None, None, None
+        return (avg_fwhm_x + avg_fwhm_y) * pixel_size / 2, ratio, avg_fwhm_x * pixel_size, avg_fwhm_y * pixel_size, sources
+    return None, None, None, None, None
 
 
 def split_image_and_calculate_fwhm(image_data, pixel_size):
@@ -151,7 +153,7 @@ def split_image_and_calculate_fwhm(image_data, pixel_size):
             x_start, x_end = j * w_step, (j + 1) * w_step
             y_start, y_end = i * h_step, (i + 1) * h_step
             region_data = image_data[y_start:y_end, x_start:x_end]
-            fwhm, ratio, sources = calculate_fwhm(region_data, pixel_size)
+            fwhm, ratio, fwhm_x, fwhm_y, sources = calculate_fwhm(region_data, pixel_size)
             if fwhm and ratio:
                 fwhm_results[region_name] = {"FWHM": fwhm, "Ratio": ratio, "sources": sources}
             else:
