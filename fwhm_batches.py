@@ -22,28 +22,37 @@ parser.add_argument('--size', type=float, default=11, help='CMOS = 11, CCD = 13.
 args = parser.parse_args()
 pixel_size = args.size
 
+# Initialize a global dictionary to store results for all images
+all_results = []
 
-def save_results_json(filename, bjd, airmass, pixel_size, fwhm_results):
+
+def save_results_json(bjd, airmass, pixel_size, fwhm_results):
     # Prepare results to include only the necessary fields for each region
-    regions_data = {}
+    regions_data = []
     for region_name, results in fwhm_results.items():
-        regions_data[region_name] = {
+        regions_data.append({
+            "Region": region_name,
             "FWHM": results["FWHM"],
             "Ratio": results["Ratio"]
-        }
+        })
 
     result_data = {
         "BJD": bjd,
         "Airmass": airmass,
         "Pixel_size": pixel_size,
-        "Regions": regions_data  # Only save FWHM and Ratio for regions
+        "Regions": regions_data  # Save regions data as a list
     }
 
-    json_filename = filename.replace('.fits', '_fwhm_results.json')
-    with open(json_filename, "w") as json_file:
-        json.dump(result_data, json_file, indent=4)
-    print(f"Results saved to {json_filename}")
-    
+    all_results.append(result_data)  # Append result data for this image
+
+
+# After processing all images, save all results to a single JSON file
+
+def save_all_results_to_json():
+    with open("fwhm_results.json", "w") as json_file:
+        json.dump(all_results, json_file, indent=4)
+    print("All results saved to all_fwhm_results.json")
+
 
 def plot_full_image_with_sources(image_data, fwhm_results):
     # Adjust contrast using percentiles
@@ -56,10 +65,10 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     # Split the image into quadrants
     h, w = image_data.shape
     quadrants = {
-        "Region_11": (0, h//2, 0, w//2),
-        "Region_12": (0, h//2, w//2, w),
-        "Region_21": (h//2, h, 0, w//2),
-        "Region_22": (h//2, h, w//2, w),
+        "Region_11": (0, h // 2, 0, w // 2),
+        "Region_12": (0, h // 2, w // 2, w),
+        "Region_21": (h // 2, h, 0, w // 2),
+        "Region_22": (h // 2, h, w // 2, w),
     }
 
     positions = []  # Store positions of sources for lines
@@ -88,10 +97,10 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     #     plt.plot(xs, ys, color='cyan', linestyle='-', lw=1.5, alpha=0.5)  # Line connecting sources
 
     # Draw boundary lines for regions
-    plt.axhline(y=h//2, color='black', linestyle='-', lw=1)  # Horizontal line between Region 1 and 2
-    plt.axvline(x=w//2, color='black', linestyle='-', lw=1)  # Vertical line between Region 1 and 2
-    plt.axhline(y=h, color='black', linestyle='-', lw=1)      # Bottom boundary
-    plt.axvline(x=w, color='black', linestyle='-', lw=1)      # Right boundary
+    plt.axhline(y=h // 2, color='black', linestyle='-', lw=1)  # Horizontal line between Region 1 and 2
+    plt.axvline(x=w // 2, color='black', linestyle='-', lw=1)  # Vertical line between Region 1 and 2
+    plt.axhline(y=h, color='black', linestyle='-', lw=1)  # Bottom boundary
+    plt.axvline(x=w, color='black', linestyle='-', lw=1)  # Right boundary
 
     # Set the axes to match the image dimensions
     plt.xlim(0, w)  # Set x limits to match image width
@@ -192,6 +201,11 @@ for i, filename in enumerate(filenames):
             print(f"{region} - FWHM: {results['FWHM']:.2f}, Ratio: {results['Ratio']:.2f}")
 
         # Save results for the current image
-        save_results_json(filename, header['BJD'], header['AIRMASS'], pixel_size, fwhm_results)
-        if i == len(filenames) - 1:
-            plot_full_image_with_sources(image_data, fwhm_results)
+        save_results_json(header['BJD'], header['AIRMASS'], pixel_size, fwhm_results)
+
+# After processing all images, save to a single JSON file
+save_all_results_to_json()
+
+# Optionally, plot the last image as needed
+if len(filenames) > 0:
+    plot_full_image_with_sources(image_data, fwhm_results)
