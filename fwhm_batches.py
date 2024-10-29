@@ -44,7 +44,7 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     plt.figure(figsize=(10, 10))
     plt.imshow(image_data, cmap='hot', origin='lower', vmin=vmin, vmax=vmax)
 
-    # Split the image into quadrants and overlay apertures for sources
+    # Split the image into quadrants
     h, w = image_data.shape
     quadrants = {
         "Region_11": (0, h//2, 0, w//2),
@@ -70,21 +70,27 @@ def plot_full_image_with_sources(image_data, fwhm_results):
 
             # Display average FWHM for the region
             avg_fwhm = region_sources['FWHM']
-            plt.text(x_start + 10, y_start + 20, f'{region_name} FWHM: {avg_fwhm:.2f} microns',
+            plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
                      color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
 
-    # Draw lines connecting the sources
-    if len(positions) > 1:
-        xs, ys = zip(*positions)
-        plt.plot(xs, ys, color='cyan', linestyle='-', lw=1.5, alpha=0.3)  # Line connecting sources
+    # # Draw lines connecting the sources
+    # if len(positions) > 1:
+    #     xs, ys = zip(*positions)
+    #     plt.plot(xs, ys, color='cyan', linestyle='-', lw=1.5, alpha=0.5)  # Line connecting sources
 
-        # Calculate the average FWHM from the results
-        fwhm_values = [results['FWHM'] for results in fwhm_results.values() if 'FWHM' in results]
-        average_fwhm = np.median(fwhm_values) if fwhm_values else 0
+    # Draw boundary lines for regions
+    plt.axhline(y=h//2, color='black', linestyle='-', lw=1)  # Horizontal line between Region 1 and 2
+    plt.axvline(x=w//2, color='black', linestyle='-', lw=1)  # Vertical line between Region 1 and 2
+    plt.axhline(y=h, color='black', linestyle='-', lw=1)      # Bottom boundary
+    plt.axvline(x=w, color='black', linestyle='-', lw=1)      # Right boundary
 
-        plt.title(f"Average from Regions: FWHM = {average_fwhm:.2f} microns")
-        plt.show()
-        
+    # Calculate the average FWHM from the results
+    fwhm_values = [results['FWHM'] for results in fwhm_results.values() if 'FWHM' in results]
+    average_fwhm = np.median(fwhm_values) if fwhm_values else 0
+
+    plt.title(f"Average from Regions: FWHM = {average_fwhm:.2f} microns")
+    plt.show()
+
 
 def calculate_fwhm(image_data, pixel_size):
     mean, median, std = np.mean(image_data), np.median(image_data), mad_std(image_data)
