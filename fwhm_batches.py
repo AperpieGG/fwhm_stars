@@ -76,11 +76,15 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     # Draw lines connecting the sources
     if len(positions) > 1:
         xs, ys = zip(*positions)
-        plt.plot(xs, ys, color='cyan', linestyle='-', lw=1.5, alpha=0.5)  # Line connecting sources
+        plt.plot(xs, ys, color='cyan', linestyle='-', lw=1.5, alpha=0.3)  # Line connecting sources
 
-    plt.title(f"Average from Regions: FWHM = {np.median(list(fwhm_results.values())):.2f} microns")
-    plt.show()
+        # Calculate the average FWHM from the results
+        fwhm_values = [results['FWHM'] for results in fwhm_results.values() if 'FWHM' in results]
+        average_fwhm = np.median(fwhm_values) if fwhm_values else 0
 
+        plt.title(f"Average from Regions: FWHM = {average_fwhm:.2f} microns")
+        plt.show()
+        
 
 def calculate_fwhm(image_data, pixel_size):
     mean, median, std = np.mean(image_data), np.median(image_data), mad_std(image_data)
