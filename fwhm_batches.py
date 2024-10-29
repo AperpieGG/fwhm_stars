@@ -56,17 +56,19 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     for region_name, (y_start, y_end, x_start, x_end) in quadrants.items():
         # Get FWHM results for each region
         if region_name in fwhm_results:
-            region_sources = fwhm_results[region_name]
+            region_sources = fwhm_results[region_name].get("sources", [])
 
             # Calculate positions adjusted for region's starting coordinates
             for source in region_sources:
-                x_pos = source['xcentroid'] + x_start
-                y_pos = source['ycentroid'] + y_start
-                aperture = CircularAperture((x_pos, y_pos), r=5.)
-                aperture.plot(color='blue', lw=1.5, alpha=0.5)
+                # Verify source has expected keys
+                if isinstance(source, dict) and 'xcentroid' in source and 'ycentroid' in source:
+                    x_pos = source['xcentroid'] + x_start
+                    y_pos = source['ycentroid'] + y_start
+                    aperture = CircularAperture((x_pos, y_pos), r=5.)
+                    aperture.plot(color='blue', lw=1.5, alpha=0.5)
 
             # Display average FWHM for the region
-            avg_fwhm = region_sources['FWHM']
+            avg_fwhm = fwhm_results[region_name]["FWHM"]
             plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
                      color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
 
@@ -81,7 +83,7 @@ def calculate_fwhm(image_data, pixel_size):
     selected_sources = daofind(image_data - median)
     if selected_sources is None:
         print("No sources found.")
-        return None, None
+        return None, None, None
 
     fwhms_x, fwhms_y, sources = [], [], []
     for x_star, y_star in zip(selected_sources['xcentroid'], selected_sources['ycentroid']):
@@ -97,6 +99,7 @@ def calculate_fwhm(image_data, pixel_size):
                 sigma_x, sigma_y = popt[3], popt[4]
                 fwhms_x.append(2.355 * sigma_x)
                 fwhms_y.append(2.355 * sigma_y)
+                # Store coordinates in a dictionary
                 sources.append({'xcentroid': x_star, 'ycentroid': y_star})
             except Exception as e:
                 print(f"Error fitting source: {e}")
@@ -131,7 +134,7 @@ filenames = sorted([
     f for f in os.listdir(directory)
     if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
                                                                       "catalog", "phot", "catalog_input"])
-])
+])[:10]
 
 for i, filename in enumerate(filenames):
     full_path = os.path.join(directory, filename)
