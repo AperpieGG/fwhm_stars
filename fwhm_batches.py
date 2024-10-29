@@ -71,7 +71,7 @@ def plot_full_image_with_sources(image_data, fwhm_results):
             # Display average FWHM for the region
             avg_fwhm = region_sources['FWHM']
             plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
-                     color='white', fontsize=8, bbox=dict(facecolor='black', alpha=0.7))
+                     color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
 
     # # Draw lines connecting the sources
     # if len(positions) > 1:
@@ -153,7 +153,7 @@ filenames = sorted([
     f for f in os.listdir(directory)
     if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
                                                                       "catalog", "phot", "catalog_input"])
-])[:10]
+])
 
 for i, filename in enumerate(filenames):
     full_path = os.path.join(directory, filename)
