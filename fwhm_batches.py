@@ -41,7 +41,7 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     vmin, vmax = np.percentile(image_data, [5, 95])
 
     # Set up figure and display the full image
-    plt.figure(figsize=(10, 10))
+    plt.figure()
     plt.imshow(image_data, cmap='hot', origin='lower', vmin=vmin, vmax=vmax)
 
     # Split the image into quadrants
@@ -83,6 +83,11 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     plt.axvline(x=w//2, color='black', linestyle='-', lw=1)  # Vertical line between Region 1 and 2
     plt.axhline(y=h, color='black', linestyle='-', lw=1)      # Bottom boundary
     plt.axvline(x=w, color='black', linestyle='-', lw=1)      # Right boundary
+
+    # Set the axes to match the image dimensions
+    plt.xlim(0, w)  # Set x limits to match image width
+    plt.ylim(0, h)  # Set y limits to match image height
+    plt.gca().invert_yaxis()  # Invert y axis to match the image orientation
 
     # Calculate the average FWHM from the results
     fwhm_values = [results['FWHM'] for results in fwhm_results.values() if 'FWHM' in results]
