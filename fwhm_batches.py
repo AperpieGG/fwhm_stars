@@ -155,7 +155,7 @@ def split_image_and_calculate_fwhm(image_data, pixel_size):
             region_data = image_data[y_start:y_end, x_start:x_end]
             fwhm, ratio, fwhm_x, fwhm_y, sources = calculate_fwhm(region_data, pixel_size)
             if fwhm and ratio:
-                fwhm_results[region_name] = {"FWHM": fwhm, "Ratio": ratio, "sources": sources}
+                fwhm_results[region_name] = {"FWHM": fwhm, "Ratio": ratio, "sources": sources, "FWHM_X": fwhm_x, "FWHM_Y": fwhm_y}
             else:
                 print(f"FWHM calculation failed for {region_name}")
     return fwhm_results
