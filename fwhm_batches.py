@@ -41,7 +41,7 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     vmin, vmax = np.percentile(image_data, [5, 95])
 
     # Set up figure and display the full image
-    plt.figure()
+    plt.figure(figsize=(10, 10))
     plt.imshow(image_data, cmap='hot', origin='lower', vmin=vmin, vmax=vmax)
 
     # Split the image into quadrants
