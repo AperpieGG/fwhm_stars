@@ -36,33 +36,42 @@ def save_results_json(bjd, airmass, fwhm_values, ratio_values, fwhm_results, pix
         json.dump(result_data, json_file, indent=4)
 
 
-def plot_image_with_sources(image_data, fwhm_results):
-    fig, ax = plt.subplots(2, 2, figsize=(12, 10))
+def plot_full_image_with_sources(image_data, fwhm_results):
+    # Adjust contrast using percentiles
+    vmin, vmax = np.percentile(image_data, [5, 95])
+
+    # Set up figure and display the full image
+    plt.figure(figsize=(10, 10))
+    plt.imshow(image_data, cmap='hot', origin='lower', vmin=vmin, vmax=vmax)
+
+    # Split the image into quadrants and overlay apertures for sources
     h, w = image_data.shape
-    regions = {
-        "Region_11": image_data[0:h // 2, 0:w // 2],
-        "Region_12": image_data[0:h // 2, w // 2:w],
-        "Region_21": image_data[h // 2:h, 0:w // 2],
-        "Region_22": image_data[h // 2:h, w // 2:w],
+    quadrants = {
+        "Region_11": (0, h//2, 0, w//2),
+        "Region_12": (0, h//2, w//2, w),
+        "Region_21": (h//2, h, 0, w//2),
+        "Region_22": (h//2, h, w//2, w),
     }
-    for i, (region_name, region_data) in enumerate(regions.items()):
-        ax_row = i // 2
-        ax_col = i % 2
-        ax[ax_row, ax_col].imshow(region_data, cmap='gray', origin='lower')
-        ax[ax_row, ax_col].set_title(region_name)
 
+    for region_name, (y_start, y_end, x_start, x_end) in quadrants.items():
+        # Get FWHM results for each region
         if region_name in fwhm_results:
-            for source in fwhm_results[region_name]["sources"]:
-                x_star, y_star = source['xcentroid'], source['ycentroid']
-                aperture = CircularAperture((x_star, y_star), r=5)
-                aperture.plot(color='red', lw=1, ax=ax[ax_row, ax_col])
+            region_sources = fwhm_results[region_name]
 
-            avg_fwhm = fwhm_results[region_name]["FWHM"]
-            ax[ax_row, ax_col].text(0.05, 0.95, f'Avg FWHM: {avg_fwhm:.2f} px',
-                                    transform=ax[ax_row, ax_col].transAxes,
-                                    color='white', fontsize=10, ha='left')
+            # Calculate positions adjusted for region's starting coordinates
+            for source in region_sources:
+                x_pos = source['xcentroid'] + x_start
+                y_pos = source['ycentroid'] + y_start
+                aperture = CircularAperture((x_pos, y_pos), r=5.)
+                aperture.plot(color='blue', lw=1.5, alpha=0.5)
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+            # Display average FWHM for the region
+            avg_fwhm = region_sources['FWHM']
+            plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
+                     color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
+
+    plt.colorbar(label='Pixel Value')
+    plt.title("Full Image with Detected Sources and FWHM")
     plt.show()
 
 
@@ -149,4 +158,4 @@ for i, filename in enumerate(filenames):
 
         save_results_json(header['BJD'], header['AIRMASS'], fwhm_values, ratio_values, fwhm_results, pixel_size)
         if i == len(filenames) - 1:
-            plot_image_with_sources(image_data, fwhm_results)
+            plot_full_image_with_sources(image_data, fwhm_results)
