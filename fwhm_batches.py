@@ -32,7 +32,7 @@ def save_results_json(bjd, airmass, fwhm_values, ratio_values, fwhm_results, pix
         "Pixel_size": pixel_size,
         "Regions": fwhm_results
     }
-    with open("fwhm_results.json", "w") as json_file:
+    with open("fwhm_regions.json", "w") as json_file:
         json.dump(result_data, json_file, indent=4)
 
 
@@ -78,14 +78,13 @@ def plot_full_image_with_sources(image_data, fwhm_results):
         xs, ys = zip(*positions)
         plt.plot(xs, ys, color='cyan', linestyle='-', lw=1.5, alpha=0.5)  # Line connecting sources
 
-    plt.colorbar(label='Pixel Value')
-    plt.title("Full Image with Detected Sources and FWHM")
+    plt.title(f"Average from Regions: FWHM = {np.median(list(fwhm_results.values())):.2f} microns")
     plt.show()
 
 
 def calculate_fwhm(image_data, pixel_size):
     mean, median, std = np.mean(image_data), np.median(image_data), mad_std(image_data)
-    daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=250)
+    daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=100)
     selected_sources = daofind(image_data - median)
     if selected_sources is None:
         print("No sources found.")
