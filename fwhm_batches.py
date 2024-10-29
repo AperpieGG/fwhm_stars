@@ -71,7 +71,7 @@ def plot_full_image_with_sources(image_data, fwhm_results):
             # Display average FWHM for the region
             avg_fwhm = region_sources['FWHM']
             plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
-                     color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
+                     color='white', fontsize=5, bbox=dict(facecolor='black', alpha=0.7))
 
     # # Draw lines connecting the sources
     # if len(positions) > 1:
@@ -87,13 +87,12 @@ def plot_full_image_with_sources(image_data, fwhm_results):
     # Set the axes to match the image dimensions
     plt.xlim(0, w)  # Set x limits to match image width
     plt.ylim(0, h)  # Set y limits to match image height
-    plt.gca().invert_yaxis()  # Invert y axis to match the image orientation
 
     # Calculate the average FWHM from the results
     fwhm_values = [results['FWHM'] for results in fwhm_results.values() if 'FWHM' in results]
     average_fwhm = np.median(fwhm_values) if fwhm_values else 0
 
-    plt.title(f"Average from Regions: FWHM = {average_fwhm:.2f} microns")
+    plt.title(f"Avg Regions: FWHM = {average_fwhm:.2f} microns")
     plt.show()
 
 
