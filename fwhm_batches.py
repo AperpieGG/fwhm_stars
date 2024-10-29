@@ -23,7 +23,7 @@ args = parser.parse_args()
 pixel_size = args.size
 
 
-def save_results_json(bjd, airmass, pixel_size, fwhm_results):
+def save_results_json(filename, bjd, airmass, pixel_size, fwhm_results):
     # Prepare results to include only the necessary fields for each region
     regions_data = {}
     for region_name, results in fwhm_results.items():
@@ -39,9 +39,11 @@ def save_results_json(bjd, airmass, pixel_size, fwhm_results):
         "Regions": regions_data  # Only save FWHM and Ratio for regions
     }
 
-    with open("fwhm_regions.json", "w") as json_file:
+    json_filename = filename.replace('.fits', '_fwhm_results.json')
+    with open(json_filename, "w") as json_file:
         json.dump(result_data, json_file, indent=4)
-
+    print(f"Results saved to {json_filename}")
+    
 
 def plot_full_image_with_sources(image_data, fwhm_results):
     # Adjust contrast using percentiles
@@ -162,7 +164,7 @@ filenames = sorted([
                                                                       "catalog", "phot", "catalog_input"])
 ])[:10]
 
-# Use the updated save_results_json function when saving results
+# Inside the loop that processes each FITS file
 for i, filename in enumerate(filenames):
     full_path = os.path.join(directory, filename)
     print(f"Processing file {i + 1}: {filename}")
@@ -189,7 +191,7 @@ for i, filename in enumerate(filenames):
         for region, results in fwhm_results.items():
             print(f"{region} - FWHM: {results['FWHM']:.2f}, Ratio: {results['Ratio']:.2f}")
 
-        # Save results without source data
-        save_results_json(header['BJD'], header['AIRMASS'], pixel_size, fwhm_results)
+        # Save results for the current image
+        save_results_json(filename, header['BJD'], header['AIRMASS'], pixel_size, fwhm_results)
         if i == len(filenames) - 1:
             plot_full_image_with_sources(image_data, fwhm_results)
