@@ -18,7 +18,7 @@ plot_images()
 
 warnings.filterwarnings('ignore', category=UserWarning)
 parser = argparse.ArgumentParser(description='Measure FWHM from a FITS image.')
-parser.add_argument('--size', type=int, default=11, help='CMOS = 11, CCD = 13.5')
+parser.add_argument('--size', type=float, default=11, help='CMOS = 11, CCD = 13.5')
 args = parser.parse_args()
 pixel_size = args.size
 
