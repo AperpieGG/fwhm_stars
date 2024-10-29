@@ -23,15 +23,22 @@ args = parser.parse_args()
 pixel_size = args.size
 
 
-def save_results_json(bjd, airmass, fwhm_values, ratio_values, fwhm_results, pixel_size):
+def save_results_json(bjd, airmass, pixel_size, fwhm_results):
+    # Prepare results to include only the necessary fields for each region
+    regions_data = {}
+    for region_name, results in fwhm_results.items():
+        regions_data[region_name] = {
+            "FWHM": results["FWHM"],
+            "Ratio": results["Ratio"]
+        }
+
     result_data = {
         "BJD": bjd,
         "Airmass": airmass,
-        "FWHM_values": fwhm_values,
-        "Ratio_values": ratio_values,
         "Pixel_size": pixel_size,
-        "Regions": fwhm_results
+        "Regions": regions_data  # Only save FWHM and Ratio for regions
     }
+
     with open("fwhm_regions.json", "w") as json_file:
         json.dump(result_data, json_file, indent=4)
 
@@ -153,14 +160,17 @@ filenames = sorted([
     f for f in os.listdir(directory)
     if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
                                                                       "catalog", "phot", "catalog_input"])
-])
+])[:10]
 
+# Use the updated save_results_json function when saving results
 for i, filename in enumerate(filenames):
     full_path = os.path.join(directory, filename)
     print(f"Processing file {i + 1}: {filename}")
     with fits.open(full_path, mode='update') as hdul:
         header, image_data = hdul[0].header, hdul[0].data
         exptime = float(header.get('EXPTIME', 10))
+
+        # Calculate BJD if not present
         if 'BJD' not in header:
             time_isot = Time(header['DATE-OBS'], format='isot', scale='utc', location=get_location())
             time_jd = Time(time_isot.jd, format='jd', scale='utc', location=get_location())
@@ -169,6 +179,7 @@ for i, filename in enumerate(filenames):
                 ltt_bary, _ = get_light_travel_times(header['TELRAD'], header['TELDECD'], time_jd)
                 header['BJD'] = (time_jd.tdb + ltt_bary).value
 
+        # Calculate Airmass if not present
         if 'AIRMASS' not in header:
             altitude = header.get('ALTITUDE', 45)
             header['AIRMASS'] = calculate_airmass(altitude)
@@ -178,6 +189,7 @@ for i, filename in enumerate(filenames):
         for region, results in fwhm_results.items():
             print(f"{region} - FWHM: {results['FWHM']:.2f}, Ratio: {results['Ratio']:.2f}")
 
-        save_results_json(header['BJD'], header['AIRMASS'], fwhm_values, ratio_values, fwhm_results, pixel_size)
+        # Save results without source data
+        save_results_json(header['BJD'], header['AIRMASS'], pixel_size, fwhm_results)
         if i == len(filenames) - 1:
             plot_full_image_with_sources(image_data, fwhm_results)
