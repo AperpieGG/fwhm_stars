@@ -53,24 +53,30 @@ def plot_full_image_with_sources(image_data, fwhm_results):
         "Region_22": (h//2, h, w//2, w),
     }
 
+    positions = []  # Store positions of sources for lines
+
     for region_name, (y_start, y_end, x_start, x_end) in quadrants.items():
         # Get FWHM results for each region
         if region_name in fwhm_results:
-            region_sources = fwhm_results[region_name].get("sources", [])
+            region_sources = fwhm_results[region_name]
 
             # Calculate positions adjusted for region's starting coordinates
-            for source in region_sources:
-                # Verify source has expected keys
-                if isinstance(source, dict) and 'xcentroid' in source and 'ycentroid' in source:
-                    x_pos = source['xcentroid'] + x_start
-                    y_pos = source['ycentroid'] + y_start
-                    aperture = CircularAperture((x_pos, y_pos), r=5.)
-                    aperture.plot(color='blue', lw=1.5, alpha=0.5)
+            for source in region_sources['sources']:
+                x_pos = source['xcentroid'] + x_start
+                y_pos = source['ycentroid'] + y_start
+                positions.append((x_pos, y_pos))  # Store position for lines
+                aperture = CircularAperture((x_pos, y_pos), r=5.)
+                aperture.plot(color='blue', lw=1.5, alpha=0.5)
 
             # Display average FWHM for the region
-            avg_fwhm = fwhm_results[region_name]["FWHM"]
-            plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
+            avg_fwhm = region_sources['FWHM']
+            plt.text(x_start + 10, y_start + 20, f'{region_name} FWHM: {avg_fwhm:.2f} microns',
                      color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
+
+    # Draw lines connecting the sources
+    if len(positions) > 1:
+        xs, ys = zip(*positions)
+        plt.plot(xs, ys, color='cyan', linestyle='-', lw=1.5, alpha=0.5)  # Line connecting sources
 
     plt.colorbar(label='Pixel Value')
     plt.title("Full Image with Detected Sources and FWHM")
@@ -79,7 +85,7 @@ def plot_full_image_with_sources(image_data, fwhm_results):
 
 def calculate_fwhm(image_data, pixel_size):
     mean, median, std = np.mean(image_data), np.median(image_data), mad_std(image_data)
-    daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=50)
+    daofind = DAOStarFinder(fwhm=4, threshold=5. * std, brightest=250)
     selected_sources = daofind(image_data - median)
     if selected_sources is None:
         print("No sources found.")
