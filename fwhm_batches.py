@@ -53,7 +53,7 @@ def save_results_json(bjd, airmass, pixel_size, fwhm_results):
 def save_all_results_to_json():
     with open("fwhm_results.json", "w") as json_file:
         json.dump(all_results, json_file, indent=4)
-    print("All results saved to all_fwhm_results.json")
+    print("All results saved to fwhm_results.json")
 
 
 def plot_full_image_with_sources(image_data, fwhm_results):
@@ -167,7 +167,7 @@ filenames = sorted([
     f for f in os.listdir(directory)
     if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
                                                                       "catalog", "phot", "catalog_input"])
-])[:10]
+])
 
 # Inside the loop that processes each FITS file
 for i, filename in enumerate(filenames):
