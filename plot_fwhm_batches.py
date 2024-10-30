@@ -6,19 +6,21 @@ from plotting_tools import plot_images
 
 
 # Function to load and process FWHM data from JSON file for each region
+# Function to load and process FWHM data from JSON file for each region
 def load_fwhm_data_per_region(json_file):
     with open(json_file, 'r') as file:
-        data = json.load(file)
-    results = data["results"]
-    bjds = [entry["BJD"] for entry in results]
-    airmass = [entry["Airmass"] for entry in results]
+        data = json.load(file)  # Load JSON, expecting it to be a list
 
-    # Initialize FWHM_X and FWHM_Y data for all regions
+    # Initialize empty lists and dictionaries
+    bjds, airmass = [], []
     fwhm_x = {f'Region_{i}{j}': [] for i in range(1, 4) for j in range(1, 4)}
     fwhm_y = {f'Region_{i}{j}': [] for i in range(1, 4) for j in range(1, 4)}
 
-    # Populate FWHM_X and FWHM_Y values for each region
-    for entry in results:
+    # Process each entry in the list
+    for entry in data:
+        bjds.append(entry["BJD"])
+        airmass.append(entry["Airmass"])
+
         for region in entry["Regions"]:
             region_name = region["Region"]
             fwhm_x[region_name].append(region["FWHM_X"])
