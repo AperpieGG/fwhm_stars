@@ -183,7 +183,7 @@ else:
     print(f"{central_region} not found in the results.")
 
 # Save results to a JSON file
-output_filename = "fwhm_results.json"
+output_filename = "fwhm_positions.json"
 with open(output_filename, 'w') as json_file:
     json.dump(results_to_save, json_file, indent=4)
 
