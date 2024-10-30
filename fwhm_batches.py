@@ -166,7 +166,9 @@ for i, filename in enumerate(filenames):
 
         # Process and store results
         bjd = header['BJD']
-        airmass = calculate_airmass(header)
+        if 'AIRMASS' not in header:
+            altitude = header.get('ALTITUDE', 45)
+            airmass = calculate_airmass(altitude)
         fwhm_results = split_image_and_calculate_fwhm(image_data, pixel_size)
         save_results_json(bjd, airmass, pixel_size, fwhm_results)
 
