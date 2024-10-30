@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 import json
 import os
 import numpy as np
@@ -14,20 +14,20 @@ from plotting_tools import get_location, get_light_travel_times, plot_images, ga
 import argparse
 import warnings
 
-plot_images()
-
 warnings.filterwarnings('ignore', category=UserWarning)
+
+# Parse arguments for pixel size
 parser = argparse.ArgumentParser(description='Measure FWHM from a FITS image.')
 parser.add_argument('--size', type=float, default=11, help='CMOS = 11, CCD = 13.5')
 args = parser.parse_args()
 pixel_size = args.size
 
-# Initialize a global dictionary to store results for all images
+# Global dictionary to store cumulative FWHM results for averaging across all images
+cumulative_fwhm_results = {f"Region_{i + 1}{j + 1}": [] for i in range(3) for j in range(3)}
 all_results = []
 
 
 def save_results_json(bjd, airmass, pixel_size, fwhm_results):
-    # Prepare results to include only the necessary fields for each region
     regions_data = []
     for region_name, results in fwhm_results.items():
         regions_data.append({
@@ -37,18 +37,14 @@ def save_results_json(bjd, airmass, pixel_size, fwhm_results):
             "FWHM_X": results["FWHM_X"],
             "FWHM_Y": results["FWHM_Y"]
         })
-
     result_data = {
         "BJD": bjd,
         "Airmass": airmass,
         "Pixel_size": pixel_size,
-        "Regions": regions_data  # Save regions data as a list
+        "Regions": regions_data
     }
+    all_results.append(result_data)
 
-    all_results.append(result_data)  # Append result data for this image
-
-
-# After processing all images, save all results to a single JSON file
 
 def save_all_results_to_json():
     with open("fwhm_results.json", "w") as json_file:
@@ -56,52 +52,35 @@ def save_all_results_to_json():
     print("All results saved to fwhm_results.json")
 
 
-def plot_full_image_with_sources(image_data, fwhm_results):
-    # Adjust contrast using percentiles
-    vmin, vmax = np.percentile(image_data, [5, 95])
+def plot_full_image_with_sources(image_data, fwhm_results, cumulative_fwhm_results):
+    avg_fwhm_per_region = {
+        region: np.mean(values) if values else 0
+        for region, values in cumulative_fwhm_results.items()
+    }
 
-    # Set up figure and display the full image
+    vmin, vmax = np.percentile(image_data, [5, 95])
     plt.figure(figsize=(10, 10))
     plt.imshow(image_data, cmap='hot', origin='lower', vmin=vmin, vmax=vmax)
 
-    # Split the image into a 3x3 grid
     h, w = image_data.shape
     h_step, w_step = h // 3, w // 3
     regions = {
-        f"Region_{i+1}{j+1}": (i * h_step, (i + 1) * h_step, j * w_step, (j + 1) * w_step)
+        f"Region_{i + 1}{j + 1}": (i * h_step, (i + 1) * h_step, j * w_step, (j + 1) * w_step)
         for i in range(3) for j in range(3)
     }
 
-    positions = []  # Store positions of sources for lines
-
     for region_name, (y_start, y_end, x_start, x_end) in regions.items():
-        # Get FWHM results for each region
-        if region_name in fwhm_results:
-            region_sources = fwhm_results[region_name]
+        avg_fwhm = avg_fwhm_per_region.get(region_name, 0)
+        plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
+                 color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
 
-            # Calculate positions adjusted for region's starting coordinates
-            for source in region_sources['sources']:
-                x_pos = source['xcentroid'] + x_start
-                y_pos = source['ycentroid'] + y_start
-                positions.append((x_pos, y_pos))  # Store position for lines
-                aperture = CircularAperture((x_pos, y_pos), r=5.)
-                aperture.plot(color='blue', lw=1.5, alpha=0.5)
-
-            # Display average FWHM for the region
-            avg_fwhm = region_sources['FWHM']
-            plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
-                     color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
-
-    # Draw boundary lines for regions
     for i in range(1, 3):
-        plt.axhline(y=i * h_step, color='black', linestyle='-', lw=1)  # Horizontal lines
-        plt.axvline(x=i * w_step, color='black', linestyle='-', lw=1)  # Vertical lines
+        plt.axhline(y=i * h_step, color='black', linestyle='-', lw=1)
+        plt.axvline(x=i * w_step, color='black', linestyle='-', lw=1)
 
-    # Set the axes to match the image dimensions
     plt.xlim(0, w)
     plt.ylim(0, h)
 
-    # Calculate the overall average FWHM
     fwhm_values = [results['FWHM'] for results in fwhm_results.values() if 'FWHM' in results]
     average_fwhm = np.median(fwhm_values) if fwhm_values else 0
 
@@ -131,7 +110,6 @@ def calculate_fwhm(image_data, pixel_size):
                 sigma_x, sigma_y = popt[3], popt[4]
                 fwhms_x.append(2.355 * sigma_x)
                 fwhms_y.append(2.355 * sigma_y)
-                # Store coordinates in a dictionary
                 sources.append({'xcentroid': x_star, 'ycentroid': y_star})
             except Exception as e:
                 print(f"Error fitting source: {e}")
@@ -144,32 +122,30 @@ def calculate_fwhm(image_data, pixel_size):
 
 def split_image_and_calculate_fwhm(image_data, pixel_size):
     h, w = image_data.shape
-    h_step, w_step = h // 3, w // 3  # Divide image into 3x3 grid
+    h_step, w_step = h // 3, w // 3
     fwhm_results = {}
 
-    for i in range(3):  # Loop through rows
-        for j in range(3):  # Loop through columns
+    for i in range(3):
+        for j in range(3):
             region_name = f"Region_{i + 1}{j + 1}"
             x_start, x_end = j * w_step, (j + 1) * w_step
             y_start, y_end = i * h_step, (i + 1) * h_step
             region_data = image_data[y_start:y_end, x_start:x_end]
             fwhm, ratio, fwhm_x, fwhm_y, sources = calculate_fwhm(region_data, pixel_size)
             if fwhm and ratio:
-                fwhm_results[region_name] = {"FWHM": fwhm, "Ratio": ratio, "sources": sources, "FWHM_X": fwhm_x, "FWHM_Y": fwhm_y}
+                fwhm_results[region_name] = {"FWHM": fwhm, "Ratio": ratio, "sources": sources, "FWHM_X": fwhm_x,
+                                             "FWHM_Y": fwhm_y}
+                cumulative_fwhm_results[region_name].append(fwhm)
             else:
                 print(f"FWHM calculation failed for {region_name}")
     return fwhm_results
 
 
+# Process each FITS file
 directory = os.getcwd()
-times, fwhm_values, airmass_values, ratio_values = [], [], [], []
-filenames = sorted([
-    f for f in os.listdir(directory)
-    if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
-                                                                      "catalog", "phot", "catalog_input"])
-])
+filenames = sorted([f for f in os.listdir(directory) if f.endswith('.fits') and not any(
+    word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark", "catalog", "phot", "catalog_input"])])[:10]
 
-# Inside the loop that processes each FITS file
 for i, filename in enumerate(filenames):
     full_path = os.path.join(directory, filename)
     print(f"Processing file {i + 1}: {filename}")
@@ -177,7 +153,7 @@ for i, filename in enumerate(filenames):
         header, image_data = hdul[0].header, hdul[0].data
         exptime = float(header.get('EXPTIME', 10))
 
-        # Calculate BJD if not present
+        # Calculate BJD if not present in the header
         if 'BJD' not in header:
             time_isot = Time(header['DATE-OBS'], format='isot', scale='utc', location=get_location())
             time_jd = Time(time_isot.jd, format='jd', scale='utc', location=get_location())
@@ -186,22 +162,17 @@ for i, filename in enumerate(filenames):
                 ltt_bary, _ = get_light_travel_times(header['TELRAD'], header['TELDECD'], time_jd)
                 header['BJD'] = (time_jd.tdb + ltt_bary).value
 
-        # Calculate Airmass if not present
-        if 'AIRMASS' not in header:
-            altitude = header.get('ALTITUDE', 45)
-            header['AIRMASS'] = calculate_airmass(altitude)
+        hdul.flush()
 
+        # Process and store results
+        bjd = header['BJD']
+        airmass = calculate_airmass(header)
         fwhm_results = split_image_and_calculate_fwhm(image_data, pixel_size)
-        print(f"FWHM Results for {filename}:")
-        for region, results in fwhm_results.items():
-            print(f"{region} - FWHM: {results['FWHM']:.2f}, Ratio: {results['Ratio']:.2f}")
+        save_results_json(bjd, airmass, pixel_size, fwhm_results)
 
-        # Save results for the current image
-        save_results_json(header['BJD'], header['AIRMASS'], pixel_size, fwhm_results)
+        # Plot last image after all files are processed
+        if i == len(filenames) - 1:
+            plot_full_image_with_sources(image_data, fwhm_results, cumulative_fwhm_results)
 
-# After processing all images, save to a single JSON file
+# Save all JSON results after processing
 save_all_results_to_json()
-
-# Optionally, plot the last image as needed
-if len(filenames) > 0:
-    plot_full_image_with_sources(image_data, fwhm_results)
