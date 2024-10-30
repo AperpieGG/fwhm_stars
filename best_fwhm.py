@@ -148,6 +148,7 @@ results_to_save = {
     "central_region": {
         "name": central_region,
         "average_fwhm": None,
+        "position": None,  # Initialize position for the central region
         "similar_regions": []
     }
 }
@@ -161,6 +162,10 @@ if central_region in average_fwhm_per_region:
 
     results_to_save["central_region"]["average_fwhm"] = central_avg_fwhm
 
+    # Store the position of the central region
+    if central_region in region_positions:
+        results_to_save["central_region"]["position"] = region_positions[central_region]["position"]
+
     for region, avg_fwhm in average_fwhm_per_region.items():
         if region != central_region and lower_bound <= avg_fwhm <= upper_bound:
             region_position = region_positions[region]["position"]
@@ -171,8 +176,7 @@ if central_region in average_fwhm_per_region:
             })
 
     if results_to_save["central_region"]["similar_regions"]:
-        print(
-            f"Regions similar to {central_region} within the threshold: {', '.join([r['name'] for r in results_to_save['central_region']['similar_regions']])}")
+        print(f"Regions similar to {central_region} within the threshold: {', '.join([r['name'] for r in results_to_save['central_region']['similar_regions']])}")
     else:
         print(f"No regions found similar to {central_region} within the threshold.")
 else:
