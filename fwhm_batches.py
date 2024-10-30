@@ -80,7 +80,7 @@ def plot_full_image_with_sources(image_data, fwhm_results, cumulative_fwhm_resul
         if region_name in fwhm_results:
             avg_fwhm = avg_fwhm_per_region.get(region_name, 0)
             region_sources = fwhm_results[region_name].get('sources', [])
-            for source in region_sources['sources']:
+            for source in region_sources:  # Corrected line, no additional ['sources'] index
                 x_pos = source['xcentroid'] + x_start
                 y_pos = source['ycentroid'] + y_start
                 positions.append((x_pos, y_pos))  # Store position for lines
