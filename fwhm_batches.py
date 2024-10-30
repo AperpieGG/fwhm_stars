@@ -87,7 +87,7 @@ def plot_full_image_with_sources(image_data, fwhm_results, cumulative_fwhm_resul
                 aperture = CircularAperture((x_pos, y_pos), r=5.)
                 aperture.plot(color='blue', lw=1.5, alpha=0.5)
 
-            plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
+            plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f} μm',
                      color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
 
     # Draw boundary lines for regions
