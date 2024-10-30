@@ -47,7 +47,7 @@ for i in range(1, 4):
         avg_fwhm_y_ccd = np.mean(fwhm_y_ccd[region_name])
         # Define colors
         dark_blue = '#1f77b4'  # Standard darker blue from the tab color palette
-        dark_red = '#d62728'  # Standard darker red from the tab color palette
+        dark_red = '#a6281d'  # A darker red
 
         # Plot FWHM_X for CMOS and CCD
         ax.plot(bjds1, fwhm_x_cmos[region_name], 'o', label=f'FWHM_X CMOS, Avg= {avg_fwhm_x_cmos:.2f} μm', color='red',
