@@ -150,6 +150,7 @@ def split_image_and_calculate_fwhm(image_data, pixel_size):
     return fwhm_results
 
 
+# Process each FITS file
 directory = os.getcwd()
 times, fwhm_values, airmass_values, ratio_values = [], [], [], []
 filenames = sorted([
@@ -157,7 +158,9 @@ filenames = sorted([
     if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
                                                                       "catalog", "phot", "catalog_input"])])[:10]
 
-# Inside the loop that processes each FITS file
+# Initialize cumulative FWHM results for averaging FWHM across images
+cumulative_fwhm_results = {f"Region_{i + 1}{j + 1}": [] for i in range(3) for j in range(3)}
+
 for i, filename in enumerate(filenames):
     full_path = os.path.join(directory, filename)
     print(f"Processing file {i + 1}: {filename}")
@@ -183,6 +186,8 @@ for i, filename in enumerate(filenames):
         print(f"FWHM Results for {filename}:")
         for region, results in fwhm_results.items():
             print(f"{region} - FWHM: {results['FWHM']:.2f}, Ratio: {results['Ratio']:.2f}")
+            # Append FWHM for this region to cumulative results
+            cumulative_fwhm_results[region].append(results['FWHM'])
 
         # Save results for the current image
         save_results_json(header['BJD'], header['AIRMASS'], pixel_size, fwhm_results)
@@ -190,6 +195,6 @@ for i, filename in enumerate(filenames):
 # After processing all images, save to a single JSON file
 save_all_results_to_json()
 
-# Optionally, plot the last image as needed
+# Optionally, plot the last image with average FWHM for each region
 if len(filenames) > 0:
-    plot_full_image_with_sources(image_data, fwhm_results)
+    plot_full_image_with_sources(image_data, fwhm_results, cumulative_fwhm_results)
