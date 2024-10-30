@@ -155,8 +155,7 @@ times, fwhm_values, airmass_values, ratio_values = [], [], [], []
 filenames = sorted([
     f for f in os.listdir(directory)
     if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
-                                                                      "catalog", "phot", "catalog_input"])[:10]
-])
+                                                                      "catalog", "phot", "catalog_input"])])[:10]
 
 # Inside the loop that processes each FITS file
 for i, filename in enumerate(filenames):
