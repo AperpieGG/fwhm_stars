@@ -61,7 +61,7 @@ for i in range(1, 4):
             ax.plot(bjds1, fwhm_y_cmos[region_name], 'o', label=f'FWHM_Y CMOS, Avg= {avg_fwhm_y_cmos:.2f} μm', color='peru',
                     markerfacecolor='none', alpha=0.3)
 
-        if args.cam == 'CCD':
+        elif args.cam == 'CCD':
             # Plot FWHM_Y ans X for CCD
             ax.plot(bjds2, fwhm_x_ccd[region_name], 's', label=f'FWHM_X CCD, Avg= {avg_fwhm_x_ccd:.2f} μm', color='blue',
                     markerfacecolor='none', alpha=0.3)
