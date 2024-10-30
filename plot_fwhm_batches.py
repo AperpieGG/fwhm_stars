@@ -45,14 +45,23 @@ for i in range(1, 4):
         avg_fwhm_y_cmos = np.mean(fwhm_y_cmos[region_name])
         avg_fwhm_x_ccd = np.mean(fwhm_x_ccd[region_name])
         avg_fwhm_y_ccd = np.mean(fwhm_y_ccd[region_name])
+        # Define colors
+        red = (1, 0, 0)  # RGB for red
+        dark_red = (0.8, 0, 0)  # Darker shade of red
+        blue = (0, 0, 1)  # RGB for blue
+        dark_blue = (0, 0, 0.8)  # Darker shade of blue
 
         # Plot FWHM_X for CMOS and CCD
-        ax.plot(bjds1, fwhm_x_cmos[region_name], 'o', label=f'FWHM_X CMOS, Avg= {avg_fwhm_x_cmos:.2f} μm', color='red', markerfacecolor='none', alpha=0.3)
-        ax.plot(bjds2, fwhm_x_ccd[region_name], 's', label=f'FWHM_X CCD, Avg= {avg_fwhm_x_ccd:.2f} μm', color='blue', markerfacecolor='none', alpha=0.3)
+        ax.plot(bjds1, fwhm_x_cmos[region_name], 'o', label=f'FWHM_X CMOS, Avg= {avg_fwhm_x_cmos:.2f} μm', color='red',
+                markerfacecolor='none', alpha=0.3)
+        ax.plot(bjds2, fwhm_x_ccd[region_name], 's', label=f'FWHM_X CCD, Avg= {avg_fwhm_x_ccd:.2f} μm', color='blue',
+                markerfacecolor='none', alpha=0.3)
 
         # Plot FWHM_Y for CMOS and CCD
-        ax.plot(bjds1, fwhm_y_cmos[region_name], 'o', label=f'FWHM_Y CMOS, Avg= {avg_fwhm_y_cmos:.2f} μm', color='orange', markerfacecolor='none', alpha=0.3)
-        ax.plot(bjds2, fwhm_y_ccd[region_name], 's', label=f'FWHM_Y CCD, Avg= {avg_fwhm_y_ccd:.2f} μm', color='purple', markerfacecolor='none', alpha=0.3)
+        ax.plot(bjds1, fwhm_y_cmos[region_name], 'o', label=f'FWHM_Y CMOS, Avg= {avg_fwhm_y_cmos:.2f} μm', color='dark_red',
+                markerfacecolor='none', alpha=0.3)
+        ax.plot(bjds2, fwhm_y_ccd[region_name], 's', label=f'FWHM_Y CCD, Avg= {avg_fwhm_y_ccd:.2f} μm', color='dark_blue',
+                markerfacecolor='none', alpha=0.3)
 
         # Set region title and labels
         ax.set_title(f'{region_name}', fontsize=10)
