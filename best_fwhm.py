@@ -117,36 +117,36 @@ for i, filename in enumerate(filenames):
             # Append FWHM for this region to cumulative results
             cumulative_fwhm_results[region].append(results['FWHM'])
 
-            # After processing all images, calculate and print the average FWHM for each region
-            print("\nAverage FWHM for each region across all images:")
-            average_fwhm_per_region = {}
-            for region, fwhm_list in cumulative_fwhm_results.items():
-                if fwhm_list:  # Check if the list is not empty
-                    average_fwhm = np.mean(fwhm_list)  # Calculate the average
-                    average_fwhm_per_region[region] = average_fwhm  # Store the average FWHM for later comparison
-                    print(f"{region}: Average FWHM = {average_fwhm:.2f} pixels")
-                else:
-                    print(f"{region}: No FWHM values found.")
+# After processing all images, calculate and print the average FWHM for each region
+print("\nAverage FWHM for each region across all images:")
+average_fwhm_per_region = {}
+for region, fwhm_list in cumulative_fwhm_results.items():
+    if fwhm_list:  # Check if the list is not empty
+        average_fwhm = np.mean(fwhm_list)  # Calculate the average
+        average_fwhm_per_region[region] = average_fwhm  # Store the average FWHM for later comparison
+        print(f"{region}: Average FWHM = {average_fwhm:.2f} pixels")
+    else:
+        print(f"{region}: No FWHM values found.")
 
-            # Check central region (Region 22) and find similar regions
-            central_region = "Region_22"
-            threshold = 0.5  # Microns
+# Check central region (Region 22) and find similar regions
+central_region = "Region_22"
+threshold = 0.5  # Microns
 
-            if central_region in average_fwhm_per_region:
-                central_avg_fwhm = average_fwhm_per_region[central_region]
-                lower_bound = central_avg_fwhm - threshold
-                upper_bound = central_avg_fwhm + threshold
-                print(
-                    f"\nAverage FWHM for {central_region} is {central_avg_fwhm:.2f} pixels with threshold range: {lower_bound:.2f} to {upper_bound:.2f}")
+if central_region in average_fwhm_per_region:
+    central_avg_fwhm = average_fwhm_per_region[central_region]
+    lower_bound = central_avg_fwhm - threshold
+    upper_bound = central_avg_fwhm + threshold
+    print(
+        f"\nAverage FWHM for {central_region} is {central_avg_fwhm:.2f} pixels with threshold range: {lower_bound:.2f} to {upper_bound:.2f}")
 
-                similar_regions = []
-                for region, avg_fwhm in average_fwhm_per_region.items():
-                    if region != central_region and lower_bound <= avg_fwhm <= upper_bound:
-                        similar_regions.append(region)
+    similar_regions = []
+    for region, avg_fwhm in average_fwhm_per_region.items():
+        if region != central_region and lower_bound <= avg_fwhm <= upper_bound:
+            similar_regions.append(region)
 
-                if similar_regions:
-                    print(f"Regions similar to {central_region} within the threshold: {', '.join(similar_regions)}")
-                else:
-                    print(f"No regions found similar to {central_region} within the threshold.")
-            else:
-                print(f"{central_region} not found in the results.")
+    if similar_regions:
+        print(f"Regions similar to {central_region} within the threshold: {', '.join(similar_regions)}")
+    else:
+        print(f"No regions found similar to {central_region} within the threshold.")
+else:
+    print(f"{central_region} not found in the results.")
