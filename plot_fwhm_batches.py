@@ -3,8 +3,15 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 from plotting_tools import plot_images
+import argparse
 
 plot_images()
+
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Plot FWHM data from JSON files.')
+parser.add_argument('--cam', type=str, default='both', help='CMOS, CCD, or both')
+args = parser.parse_args()
 
 
 # Function to load and process FWHM data from JSON file for each region
@@ -29,6 +36,7 @@ def load_fwhm_data_per_region(json_file):
 
     return bjds, airmass, fwhm_x, fwhm_y
 
+
 # Load data from JSON files for CMOS and CCD
 bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = load_fwhm_data_per_region('fwhm_results_CMOS.json')
 bjds2, airmass2, fwhm_x_ccd, fwhm_y_ccd = load_fwhm_data_per_region('fwhm_results_CCD.json')
@@ -46,17 +54,30 @@ for i in range(1, 4):
         avg_fwhm_x_ccd = np.mean(fwhm_x_ccd[region_name])
         avg_fwhm_y_ccd = np.mean(fwhm_y_ccd[region_name])
 
-        # Plot FWHM_X for CMOS and CCD
-        ax.plot(bjds1, fwhm_x_cmos[region_name], 'o', label=f'FWHM_X CMOS, Avg= {avg_fwhm_x_cmos:.2f} μm', color='red',
-                markerfacecolor='none', alpha=0.3)
-        ax.plot(bjds2, fwhm_x_ccd[region_name], 's', label=f'FWHM_X CCD, Avg= {avg_fwhm_x_ccd:.2f} μm', color='blue',
-                markerfacecolor='none', alpha=0.3)
+        # Plot FWHM_X and Y for CMOS
+        if args.cam == 'CMOS':
+            ax.plot(bjds1, fwhm_x_cmos[region_name], 'o', label=f'FWHM_X CMOS, Avg= {avg_fwhm_x_cmos:.2f} μm', color='red',
+                    markerfacecolor='none', alpha=0.3)
+            ax.plot(bjds1, fwhm_y_cmos[region_name], 'o', label=f'FWHM_Y CMOS, Avg= {avg_fwhm_y_cmos:.2f} μm', color='peru',
+                    markerfacecolor='none', alpha=0.3)
 
-        # Plot FWHM_Y for CMOS and CCD
-        ax.plot(bjds1, fwhm_y_cmos[region_name], 'o', label=f'FWHM_Y CMOS, Avg= {avg_fwhm_y_cmos:.2f} μm', color='peru',
-                markerfacecolor='none', alpha=0.3)
-        ax.plot(bjds2, fwhm_y_ccd[region_name], 's', label=f'FWHM_Y CCD, Avg= {avg_fwhm_y_ccd:.2f} μm', color='blueviolet',
-                markerfacecolor='none', alpha=0.3)
+        if args.cam == 'CCD':
+            # Plot FWHM_Y ans X for CCD
+            ax.plot(bjds2, fwhm_x_ccd[region_name], 's', label=f'FWHM_X CCD, Avg= {avg_fwhm_x_ccd:.2f} μm', color='blue',
+                    markerfacecolor='none', alpha=0.3)
+            ax.plot(bjds2, fwhm_y_ccd[region_name], 's', label=f'FWHM_Y CCD, Avg= {avg_fwhm_y_ccd:.2f} μm', color='blueviolet',
+                    markerfacecolor='none', alpha=0.3)
+
+        # else plot both CMOS and CCD
+        else:
+            ax.plot(bjds1, fwhm_x_cmos[region_name], 'o', label=f'FWHM_X CMOS, Avg= {avg_fwhm_x_cmos:.2f} μm', color='red',
+                    markerfacecolor='none', alpha=0.3)
+            ax.plot(bjds1, fwhm_y_cmos[region_name], 'o', label=f'FWHM_Y CMOS, Avg= {avg_fwhm_y_cmos:.2f} μm', color='peru',
+                    markerfacecolor='none', alpha=0.3)
+            ax.plot(bjds2, fwhm_x_ccd[region_name], 's', label=f'FWHM_X CCD, Avg= {avg_fwhm_x_ccd:.2f} μm', color='blue',
+                    markerfacecolor='none', alpha=0.3)
+            ax.plot(bjds2, fwhm_y_ccd[region_name], 's', label=f'FWHM_Y CCD, Avg= {avg_fwhm_y_ccd:.2f} μm', color='blueviolet',
+                    markerfacecolor='none', alpha=0.3)
 
         # Set region title and labels
         ax.set_title(f'{region_name}', fontsize=10)
