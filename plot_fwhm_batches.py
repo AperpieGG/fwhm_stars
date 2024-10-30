@@ -53,9 +53,9 @@ for i in range(1, 4):
                 markerfacecolor='none', alpha=0.3)
 
         # Plot FWHM_Y for CMOS and CCD
-        ax.plot(bjds1, fwhm_y_cmos[region_name], 'o', label=f'FWHM_Y CMOS, Avg= {avg_fwhm_y_cmos:.2f} μm', color='darkred',
+        ax.plot(bjds1, fwhm_y_cmos[region_name], 'o', label=f'FWHM_Y CMOS, Avg= {avg_fwhm_y_cmos:.2f} μm', color='peru',
                 markerfacecolor='none', alpha=0.3)
-        ax.plot(bjds2, fwhm_y_ccd[region_name], 's', label=f'FWHM_Y CCD, Avg= {avg_fwhm_y_ccd:.2f} μm', color='darkblue',
+        ax.plot(bjds2, fwhm_y_ccd[region_name], 's', label=f'FWHM_Y CCD, Avg= {avg_fwhm_y_ccd:.2f} μm', color='navy',
                 markerfacecolor='none', alpha=0.3)
 
         # Set region title and labels
