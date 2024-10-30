@@ -55,9 +55,7 @@ for i in range(1, 4):
         ax.plot(bjds2, fwhm_y_ccd[region_name], 's', label=f'FWHM_Y CCD, Avg= {avg_fwhm_y_ccd:.2f} μm', color='purple', alpha=0.5)
 
         # Set region title and labels
-        ax.set_title(f'{region_name}')
-        ax.set_xlabel("BJD")
-        ax.set_ylabel("FWHM (pixels)")
+        ax.set_title(f'{region_name}', fontsize=10)
 
         # Airmass on top x-axis for only the top row plots
         if i == 1:
@@ -67,6 +65,16 @@ for i in range(1, 4):
             ax2.set_xticks(ax.get_xticks())
             ax2.set_xticklabels([f'{a:.2f}' for a in interpolated_airmass], rotation=45, ha='right')
             ax2.set_xlabel('Airmass')
+
+        if i == 3:
+            ax.set_xlabel("BJD")
+        else:
+            ax.set_xlabel("")
+        
+        if j == 1:
+            ax.set_ylabel("FWHM (microns)")
+        else:
+            ax.set_ylabel("")
 
         # Add legend with average values in each subplot
         ax.legend(loc='upper left', fontsize='small')
