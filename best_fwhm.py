@@ -104,7 +104,7 @@ times, fwhm_values, airmass_values, ratio_values = [], [], [], []
 filenames = sorted([
     f for f in os.listdir(directory)
     if f.endswith('.fits') and not any(word in f.lower() for word in ["evening", "morning", "flat", "bias", "dark",
-                                                                      "catalog", "phot", "catalog_input"])])[:10]
+                                                                      "catalog", "phot", "catalog_input"])])
 
 # Initialize cumulative FWHM results for averaging FWHM across images
 cumulative_fwhm_results = {f"Region_{i + 1}{j + 1}": [] for i in range(3) for j in range(3)}
