@@ -74,10 +74,19 @@ def plot_full_image_with_sources(image_data, fwhm_results, cumulative_fwhm_resul
         f"Region_{i+1}{j+1}": (i * h_step, (i + 1) * h_step, j * w_step, (j + 1) * w_step)
         for i in range(3) for j in range(3)
     }
+    positions = []  # Store positions of sources for lines
 
     for region_name, (y_start, y_end, x_start, x_end) in regions.items():
         if region_name in fwhm_results:
             avg_fwhm = avg_fwhm_per_region.get(region_name, 0)
+            region_sources = fwhm_results[region_name].get('sources', [])
+            for source in region_sources['sources']:
+                x_pos = source['xcentroid'] + x_start
+                y_pos = source['ycentroid'] + y_start
+                positions.append((x_pos, y_pos))  # Store position for lines
+                aperture = CircularAperture((x_pos, y_pos), r=5.)
+                aperture.plot(color='blue', lw=1.5, alpha=0.5)
+
             plt.text(x_start + 10, y_start + 20, f'{region_name} Avg FWHM: {avg_fwhm:.2f}px',
                      color='white', fontsize=10, bbox=dict(facecolor='black', alpha=0.7))
 
