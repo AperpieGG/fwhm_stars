@@ -110,8 +110,8 @@ filenames = sorted([
 cumulative_fwhm_results = {f"Region_{i + 1}{j + 1}": [] for i in range(3) for j in range(3)}
 region_positions = {}
 
-# Process each FITS file
-for i, filename in enumerate(filenames):
+# Process every fifth filename
+for i, filename in enumerate(filenames[::5]):
     full_path = os.path.join(directory, filename)
     print(f"Processing file {i + 1}: {filename}")
     with fits.open(full_path, mode='update') as hdul:
