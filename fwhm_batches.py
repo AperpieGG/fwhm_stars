@@ -104,7 +104,8 @@ def plot_full_image_with_sources(image_data, fwhm_results, cumulative_fwhm_resul
     average_fwhm = np.median(fwhm_values) if fwhm_values else 0
 
     plt.title(f"Avg Regions: FWHM = {average_fwhm:.2f} microns")
-    plt.show()
+    # Save the plot to a file
+    plt.savefig("fwhm_batches_images.png")
 
 
 def calculate_fwhm(image_data, pixel_size):
