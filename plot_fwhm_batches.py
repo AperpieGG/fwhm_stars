@@ -41,9 +41,9 @@ def load_fwhm_data_per_region(json_file):
 # load them else return None
 if args.cam == 'CMOS':
     bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = load_fwhm_data_per_region('fwhm_results_CMOS.json')
-    bjds2, airmass2, fwhm_x_ccd, fwhm_y_ccd = None, None, None, None
+    bjds2, airmass2, fwhm_x_ccd, fwhm_y_ccd = 1, 1, 1, 1
 elif args.cam == 'CCD':
-    bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = None, None, None, None
+    bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = 1, 1, 1, 1
     bjds2, airmass2, fwhm_x_ccd, fwhm_y_ccd = load_fwhm_data_per_region('fwhm_results_CCD.json')
 else:
     bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = load_fwhm_data_per_region('fwhm_results_CMOS.json')
