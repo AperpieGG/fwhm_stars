@@ -38,8 +38,16 @@ def load_fwhm_data_per_region(json_file):
 
 
 # Load data from JSON files for CMOS and CCD
-bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = load_fwhm_data_per_region('fwhm_results_CMOS.json')
-bjds2, airmass2, fwhm_x_ccd, fwhm_y_ccd = load_fwhm_data_per_region('fwhm_results_CCD.json')
+# load them else return None
+if args.cam == 'CMOS':
+    bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = load_fwhm_data_per_region('fwhm_results_CMOS.json')
+    bjds2, airmass2, fwhm_x_ccd, fwhm_y_ccd = None, None, None, None
+elif args.cam == 'CCD':
+    bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = None, None, None, None
+    bjds2, airmass2, fwhm_x_ccd, fwhm_y_ccd = load_fwhm_data_per_region('fwhm_results_CCD.json')
+else:
+    bjds1, airmass1, fwhm_x_cmos, fwhm_y_cmos = load_fwhm_data_per_region('fwhm_results_CMOS.json')
+    bjds2, airmass2, fwhm_x_ccd, fwhm_y_ccd = load_fwhm_data_per_region('fwhm_results_CCD.json')
 
 # Plot FWHM_X and FWHM_Y for each region
 fig, axs = plt.subplots(3, 3, figsize=(15, 15), sharex=True, sharey=True)
