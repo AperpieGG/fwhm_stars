@@ -19,8 +19,10 @@ plot_images()
 warnings.filterwarnings('ignore', category=UserWarning)
 parser = argparse.ArgumentParser(description='Measure FWHM from a FITS image.')
 parser.add_argument('--size', type=float, default=11, help='CMOS = 11, CCD = 13.5')
+parser.add_argument('--cam', type=str, default='CMOS', help='CMOS, CCD, or both')
 args = parser.parse_args()
 pixel_size = args.size
+cam = args.cam
 
 # Initialize a global dictionary to store results for all images
 all_results = []
@@ -51,9 +53,9 @@ def save_results_json(bjd, airmass, pixel_size, fwhm_results):
 # After processing all images, save all results to a single JSON file
 
 def save_all_results_to_json():
-    with open("fwhm_results.json", "w") as json_file:
+    with open(f"fwhm_results_{cam}.json", "w") as json_file:
         json.dump(all_results, json_file, indent=4)
-    print("All results saved to fwhm_results.json")
+    print(f"All results saved to fwhm_results_{cam}.json")
 
 
 def plot_full_image_with_sources(image_data, fwhm_results, cumulative_fwhm_results):
