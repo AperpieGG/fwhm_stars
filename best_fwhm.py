@@ -17,7 +17,7 @@ import warnings
 plot_images()
 
 # Check if the PNG file already exists
-output_png = "fwhm_positions.png"
+output_png = "fwhm_positions.json"
 if os.path.exists(output_png):
     print(f"{output_png} already exists. Skipping script execution.")
     exit()
