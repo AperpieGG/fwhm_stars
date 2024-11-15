@@ -16,6 +16,13 @@ import warnings
 
 plot_images()
 
+# Check if the PNG file already exists
+output_png = "fwhm_batches_images.png"
+if os.path.exists(output_png):
+    print(f"{output_png} already exists. Skipping script execution.")
+    exit()
+
+
 warnings.filterwarnings('ignore', category=UserWarning)
 parser = argparse.ArgumentParser(description='Measure FWHM from a FITS image.')
 parser.add_argument('--size', type=float, default=11, help='CMOS = 11, CCD = 13.5')
